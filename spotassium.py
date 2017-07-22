@@ -2,10 +2,12 @@ import sys
 import spotipy
 import spotipy.util as util
 import confuse
+import time
 
 from itertools import groupby
 from subprocess import call
 
+from .player import is_playing
 
 config = confuse.Configuration('spotassium', __name__)
 config.add({
@@ -13,6 +15,7 @@ config.add({
     'playlist_name': '',
     'verbose': False,
 })
+WAIT_PERIOD = 300  # 5 min
 
 
 def run_command_on_spotify_id(spotify_id):
@@ -32,16 +35,19 @@ if __name__ == '__main__':
     token = util.prompt_for_user_token(username)
 
     if token:
+        print('Access token: %s' % token)
         sp = spotipy.Spotify(auth=token)
 
         playlists = sp.user_playlists(username)['items']
-        for playlist in playlists:
-            if playlist['name'] == config['playlist_name'].get():
-                results = sp.user_playlist(username, playlist['id'],
-                                           fields="tracks,next")
-                for album, tracks in groupby(results['tracks']['items'],
-                                             key=lambda x: x['track']['album']['uri']):
-                    run_command_on_spotify_id(album)
-
+        while True:
+            if not is_playing():
+                for playlist in playlists:
+                    if playlist['name'] == config['playlist_name'].get():
+                        results = sp.user_playlist(username, playlist['id'],
+                                                   fields="tracks,next")
+                        for album, tracks in groupby(results['tracks']['items'],
+                                                     key=lambda x: x['track']['album']['uri']):
+                            run_command_on_spotify_id(album)
+            time.sleep(WAIT_PERIOD)
     else:
         print "Can't get token for", username

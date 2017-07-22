@@ -1,0 +1,4 @@
+confuse
+pyobjc
+requests
+spotipy
