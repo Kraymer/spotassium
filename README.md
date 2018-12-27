@@ -1,4 +1,6 @@
+<p align="center">
 <img src=https://github.com/Kraymer/bulkdata/raw/master/spotassium/logo.png width=200>
+</p>
 
 ---
 
